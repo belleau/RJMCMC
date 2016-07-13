@@ -578,6 +578,7 @@ birthMoveK1 <- function(paramValues, kValue, muValue, sigmafValue,
     count  <- 1L
 
     repeat {
+
         j <- sample(1:kValue, 1)
         varTilde$mu[j] <- runif(1, paramValues$minReadPos, muValue[ j])
         varTilde$mu[ 1:varTilde$k] <- sort(c(muValue[ 1:kValue],
@@ -615,9 +616,11 @@ birthMoveK1 <- function(paramValues, kValue, muValue, sigmafValue,
         Lf <- length(classesf[!duplicated(classesf)])
         Lr <- length(classesr[!duplicated(classesr)])
 
+        if ((Pr > 1 & Lf > 1 & Lr > 1)) break()
+
         count <- count + 1L
 
-        if ((Pr > 1 & Lf > 1 & Lr > 1) || count == 1000L) break()
+        if (count == 1000L) break()
     }
 
     if (count == 1000L) {
@@ -943,9 +946,13 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
 
         Lf <- length(classesf[!duplicated(classesf)])
         Lr <- length(classesr[!duplicated(classesr)])
+
+
+        if ((Pr>1 & Lf>1 & Lr>1)) break()
+
         count <- count + 1L
 
-        if ((Pr>1 & Lf>1 & Lr>1) || count == 1000L) break()
+        if (count == 1000L) break()
     }
 
     if (count == 1000L) {
@@ -1269,10 +1276,14 @@ mhMoveK1 <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
 
         Lf      <- length(classesf[!duplicated(classesf)])
         Lr      <- length(classesr[!duplicated(classesr)])
-        count   <- count + 1L
+
 
         ## Verify that conditions are met to stop the loop
-        if ((Pr > 1 & Lf > 1 & Lr > 1) || count == 1000L) break()
+        if ((Pr > 1 & Lf > 1 & Lr > 1)) break()
+
+        count   <- count + 1L
+
+        if (count == 1000L) break()
     }
 
     if (count == 1000L) {
@@ -1577,10 +1588,14 @@ mhMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
 
         Lf    <- length(classesf[!duplicated(classesf)])
         Lr    <- length(classesr[!duplicated(classesr)])
-        count <- count + 1L
+
 
         ## Verify that conditions are met to stop the loop
-        if ((Pr > 1 & Lf > 1 & Lr > 1) || count == 1000L) break()
+        if ((Pr > 1 & Lf > 1 & Lr > 1)) break()
+
+        count <- count + 1L
+
+        if (count == 1000L) break()
     }
 
     if (count == 1000L) {
@@ -1875,9 +1890,13 @@ deathMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
 
         Lf    <- length(classesf[!duplicated(classesf)])
         Lr    <- length(classesr[!duplicated(classesr)])
+
+
+        if ((Pr > 1 & Lf > 1 & Lr > 1)) break()
+
         count <- count + 1L
 
-        if ((Pr > 1 & Lf > 1 & Lr > 1) || count == 1000L) break()
+        if (count == 1000L) break()
     }
 
     if (count == 1000L) {
