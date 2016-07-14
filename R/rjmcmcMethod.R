@@ -219,15 +219,23 @@ rjmcmc <- function(startPosForwardReads, startPosReverseReads,
 
             if (u <= 0.5) {
                 ## Birth move in case k=1
-                varTilde <- birthMoveK1(paramValues, kValue, muValue,
-                                        sigmafValue, sigmarValue, deltaValue,
-                                        wValue, dfValue, aValue, dimValue)
+                #varTilde <- birthMoveK1(paramValues, kValue, muValue,
+                #                        sigmafValue, sigmarValue, deltaValue,
+                #                        wValue, dfValue, aValue, dimValue)
+                varTilde <- birthMove(paramValues, kValue, muValue,
+                                      sigmafValue, sigmarValue,
+                                      deltaValue, wValue, dfValue,
+                                      aValue, dimValue)
             } ## end of Birth move in case k=1
             else {
                 ## Metropolis-Hastings move
-                varTilde <- mhMoveK1(paramValues, kValue, muValue,
-                                        sigmafValue, sigmarValue, deltaValue,
-                                        wValue, dfValue, aValue, dimValue)
+#                 varTilde <- mhMoveK1(paramValues, kValue, muValue,
+#                                         sigmafValue, sigmarValue, deltaValue,
+#                                         wValue, dfValue, aValue, dimValue)
+                varTilde <- mhMove(paramValues, kValue, muValue,
+                                   sigmafValue, sigmarValue,
+                                   deltaValue, wValue, dfValue,
+                                   aValue, dimValue)
 
             } ## end Metropolis-Hastings move
         }  ## end CASE : Number of nucleosomes equal to 1

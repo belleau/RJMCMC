@@ -895,26 +895,41 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
     count       <- 1L
 
     repeat {
-        j <- sample(1:kValue, 1)
 
-        if (j == 1) {
+        j <- sample(1:varTilde$k, 1)
+
+        if (j == 1) {   # between minReadPos and muValue[j]
+
             varTilde$mu[j] <- runif(1, paramValues$minReadPos, muValue[j])
-        } else {
+            varTilde$mu[1:varTilde$k] <- c(varTilde$mu[j], muValue[1:kValue])
+
+        } else if(j < varTilde$k) { # between muValue[j - 1] and muValue[j]
+
             varTilde$mu[j] <- runif(1, muValue[j - 1], muValue[j])
+            varTilde$mu[1:varTilde$k] <- c(muValue[1:j-1], varTilde$mu[j], muValue[j:kValue])
+
+        } else { # between muValue[j] and maxReadPos
+
+            varTilde$mu[j] <- runif(1, muValue[j-1], paramValues$maxReadPos)
+            varTilde$mu[1:varTilde$k] <- c(muValue[1:j-1], varTilde$mu[j])
         }
 
-        varTilde$mu[1:varTilde$k] <- sort(c(muValue[1:kValue], varTilde$mu[j]))
+        #varTilde$mu[1:varTilde$k] <- sort(c(muValue[1:kValue], varTilde$mu[j]))
 
-        varTilde$a[j + 1] <- ifelse(j < kValue, runif(1,varTilde$mu[j],
-                                        varTilde$mu[j + 1]),
-                                        runif(1, varTilde$mu[j],
-                                        paramValues$maxReadPos))
-        varTilde$a[1:(varTilde$k + 1)] <- sort(c(aValue[1:varTilde$k],
-                                                varTilde$a[j + 1]))
-
-        if (j == 1) {
-            varTilde$a[j] <- paramValues$minReadPos
+        if(j < varTilde$k) {
+            varTilde$a[j + 1] <- runif(1,varTilde$mu[j], varTilde$mu[j + 1])
+            varTilde$a[1:(varTilde$k + 1)] <- c(aValue[1:j],
+                                                varTilde$a[j + 1],
+                                                aValue[(j + 1):varTilde$k])
         } else {
+            varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
+                                       paramValues$maxReadPos)
+
+            varTilde$a[1:(varTilde$k + 1)] <- c(aValue[1:varTilde$k],
+                                                varTilde$a[j + 1])
+        }
+
+        if (j > 1) {
             varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
         }
 
@@ -960,26 +975,29 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
         varTilde$rho <- 0
     } else {
         varTilde$df[j]     <- sample(3:30, 1)
-        varTilde$sigmaf[j] <- ifelse(Lf > 1, var(classesf) *
-                                (varTilde$df[j]-2)/varTilde$df[j],
-                                sigmafValue[j])
-        varTilde$sigmar[j] <- ifelse(Lr > 1, var(classesr) *
-                                (varTilde$df[j]-2)/varTilde$df[j],
-                                sigmarValue[j])
+
+        varTilde$sigmaf[j] <- var(classesf) *
+                                (varTilde$df[j]-2)/varTilde$df[j]
+        varTilde$sigmar[j] <- var(classesr) *
+                                (varTilde$df[j]-2)/varTilde$df[j]
 
         if (j == 1) {
-            varTilde$sigmaf[1:varTilde$k] <- c(sigmafValue[1:kValue],
-                                                    varTilde$sigmaf[j])
-            varTilde$sigmar[1:varTilde$k] <- c(sigmarValue[1:kValue],
-                                                    varTilde$sigmar[j])
-        } else {
+            varTilde$sigmaf[1:varTilde$k] <- c(varTilde$sigmaf[j], sigmafValue[1:kValue])
+            varTilde$sigmar[1:varTilde$k] <- c(varTilde$sigmar[j], sigmarValue[1:kValue])
+        } else if(j < varTilde$k) {
             varTilde$sigmaf[1:varTilde$k] <- c(sigmafValue[1:(j - 1)],
-                                                varTilde$sigmaf[j],
-                                                sigmafValue[j:kValue])
+                                               varTilde$sigmaf[j],
+                                               sigmafValue[j:kValue])
             varTilde$sigmar[1:varTilde$k] <- c(sigmarValue[1:(j - 1)],
-                                                varTilde$sigmar[j],
-                                                sigmarValue[j:kValue])
+                                               varTilde$sigmar[j],
+                                               sigmarValue[j:kValue])
+        } else {
+                varTilde$sigmaf[1:varTilde$k] <- c(sigmafValue[1:(j - 1)],
+                                                   varTilde$sigmaf[j])
+                varTilde$sigmar[1:varTilde$k] <- c(sigmarValue[1:(j - 1)],
+                                                   varTilde$sigmar[j])
         }
+
 
         varTilde$delta[j] <- tnormale(paramValues$zeta,
                                     1/(varTilde$sigmaf[j]^{-1} +
@@ -989,13 +1007,13 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
         if (j == 1) {
             varTilde$delta[1:varTilde$k] <- c(varTilde$delta[j],
                                                 deltaValue[1:kValue])
-        } else if (j == kValue) {
-            varTilde$delta[1:varTilde$k] <- c(deltaValue[ 1:kValue],
-                                                varTilde$delta[j])
-        } else {
+        } else if (j < varTilde$k) {
             varTilde$delta[1:varTilde$k] <- c(deltaValue[ 1:(j-1)],
-                                                varTilde$delta[j],
-                                                deltaValue[j:kValue])
+                                              varTilde$delta[j],
+                                              deltaValue[j:kValue])
+        } else {
+            varTilde$delta[1:varTilde$k] <- c(deltaValue[ 1:kValue],
+                                              varTilde$delta[j])
         }
 
         alpha                 <- rep(1, kValue)
@@ -1075,8 +1093,11 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
         rap.priorenne <- dmultinom(ennetilde, paramValues$nbrReads,
                         varTilde$w[1:varTilde$k])/dmultinom(dimValue[1:kValue],
                         paramValues$nbrReads, wValue[1:kValue])
-        rap.priork    <- (dpois(varTilde$k, paramValues$lambda)/dpois(kValue,
-                                                    paramValues$lambda))
+
+        rap.priork    <- paramValues$lambda / (varTilde$k)
+
+        #(dpois(varTilde$k, paramValues$lambda)/dpois(kValue,
+                         #          paramValues$lambda))
         rap.propmu    <- (1/(qalloc))
 
 
@@ -1526,41 +1547,62 @@ mhMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
     count        <- 1L
 
     repeat {
-        j                          <- sample(2:kValue, 1)
+        #j                          <- sample(2:kValue, 1)
+        j                          <- sample(1:kValue, 1)
         varTilde$mu[1:varTilde$k]  <- muValue[1:kValue]
 
         if (j==1) {
-            varTilde$mu[j] <- runif(1, paramValues$minReadPos, muValue[j + 1])
+            varTilde$mu[j] <- ifelse(varTilde$k > 1
+                                     , runif(1, paramValues$minReadPos
+                                             , muValue[j + 1])
+                                     , runif(1, paramValues$minReadPos
+                                             , paramValues$maxReadPos))
+        } else if (j < varTilde$k) {
+
+            varTilde$mu[j] <- runif(1,muValue[j - 1], muValue[j + 1])
+
         } else {
-            if (j==varTilde$k) {
-                varTilde$mu[j] <- runif(1,muValue[j - 1],
-                                            paramValues$maxReadPos)
-            } else {
-                varTilde$mu[j] <- runif(1,muValue[j - 1], muValue[j + 1])
-            }
+
+            varTilde$mu[j] <- runif(1,muValue[j - 1],
+                                    paramValues$maxReadPos)
         }
 
-        varTilde$mu[1:varTilde$k] <- sort(c(varTilde$mu[1:varTilde$k]))
+        #varTilde$mu[1:varTilde$k] <- sort(c(varTilde$mu[1:varTilde$k]))
 
-        varTilde$a[1:(varTilde$k + 1)] <- sort(c(aValue[1:(kValue + 1)]))
+        #varTilde$a[1:(varTilde$k + 1)] <- sort(c(aValue[1:(kValue + 1)]))
+        varTilde$a[1:(varTilde$k + 1)] <- aValue[1:(kValue + 1)]
 
-        if (j==varTilde$k) {
-            varTilde$a[j] <- runif(1, varTilde$mu[j], paramValues$maxReadPos)
-            varTilde$a[j + 1] <- paramValues$maxReadPos
+        if (j==1 ) {
+            if(varTilde$k > 1){
+                varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
+                                           varTilde$mu[j + 1])
+            } # do nothing if(varTilde$k == 1)
+
+        } else if(j < varTilde$k){
+            varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
+            varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
+                                       varTilde$mu[j + 1])
         } else {
-            if (j==1) {
-                varTilde$a[j] <- paramValues$minReadPos
-                varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
-                                            varTilde$mu[j + 1])
-            } else {
-                varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
-                varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
-                                            varTilde$mu[j + 1])
-            }
+            varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
         }
 
-        varTilde$a[1]              <- paramValues$minReadPos
-        varTilde$a[varTilde$k + 1] <- paramValues$maxReadPos
+#         if (j==varTilde$k) {
+#             varTilde$a[j] <- runif(1, varTilde$mu[j], paramValues$maxReadPos)
+#             varTilde$a[j + 1] <- paramValues$maxReadPos
+#         } else {
+#             if (j==1) {
+#                 varTilde$a[j] <- paramValues$minReadPos
+#                 varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
+#                                             varTilde$mu[j + 1])
+#             } else {
+#                 varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
+#                 varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
+#                                             varTilde$mu[j + 1])
+#             }
+#         }
+
+#         varTilde$a[1]              <- paramValues$minReadPos
+#         varTilde$a[varTilde$k + 1] <- paramValues$maxReadPos
 
         varTilde$dim[1]          <- length(paramValues$y[varTilde$a[1] <=
                                             paramValues$y & paramValues$y <
@@ -1608,12 +1650,11 @@ mhMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
 
         varTilde$df[j]     <- sample(3:30, 1)
 
-        varTilde$sigmaf[j] <- ifelse(Lf > 1, var(classesf) *
-                                        (varTilde$df[j] - 2)/varTilde$df[j],
-                                        sigmafValue[j])
-        varTilde$sigmar[j] <- ifelse(Lr > 1, var(classesr) *
-                                         (varTilde$df[j] - 2)/varTilde$df[j],
-                                        sigmarValue[j])
+        varTilde$sigmaf[j] <- var(classesf) *
+                                (varTilde$df[j] - 2)/varTilde$df[j]
+
+        varTilde$sigmar[j] <- var(classesr) *
+                                (varTilde$df[j] - 2)/varTilde$df[j]
 
         varTilde$delta[1:varTilde$k] <- deltaValue[1:kValue]
         varTilde$delta[j] <- tnormale(paramValues$zeta,
