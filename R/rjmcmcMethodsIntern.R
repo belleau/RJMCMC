@@ -1082,8 +1082,10 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
         varTilde$mu[j]
         if (j == 1) {
             qalloc <- 1/(muValue[j] - paramValues$minReadPos)
-        } else {
+        } else if(j < varTilde$k){
             qalloc <- 1/(muValue[j] - muValue[j - 1])
+        } else {
+            qalloc <- 1/(paramValues$maxReadPos - muValue[j - 1])
         }
 
         rap.priormu   <- (priorMuDensity(varTilde$mu[1:varTilde$k],
