@@ -2359,7 +2359,6 @@ validatePrepMergeParameters <- function(startPosForwardReads,
 #' @importFrom IRanges IRanges
 #' @importFrom GenomeInfoDb Seqinfo seqinfo seqnames
 #' @importFrom S4Vectors queryHits subjectHits
-#' @importFrom stats na.omit
 #' @keywords internal
 #'
 postMerge <- function(startPosForwardReads, startPosReverseReads,
@@ -2435,5 +2434,5 @@ postMerge <- function(startPosForwardReads, startPosReverseReads,
         }
     }
 
-    return(as.numeric(na.omit(newMu)))
+    return(as.numeric(newMu[!is.na(newMu)]))
 }
