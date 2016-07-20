@@ -916,25 +916,23 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
 
         #varTilde$mu[1:varTilde$k] <- sort(c(muValue[1:kValue], varTilde$mu[j]))
 
+        varTilde$a[1]                   <- paramValues$minReadPos
+        varTilde$a[varTilde$k + 1]      <- paramValues$maxReadPos
+
         if(j < varTilde$k) {
             varTilde$a[j + 1] <- runif(1,varTilde$mu[j], varTilde$mu[j + 1])
             varTilde$a[1:(varTilde$k + 1)] <- c(aValue[1:j],
                                                 varTilde$a[j + 1],
                                                 aValue[(j + 1):varTilde$k])
         } else {
-            varTilde$a[j + 1] <- runif(1, varTilde$mu[j],
-                                       paramValues$maxReadPos)
 
-            varTilde$a[1:(varTilde$k + 1)] <- c(aValue[1:varTilde$k],
-                                                varTilde$a[j + 1])
+            varTilde$a[1:(varTilde$k)] <- c(aValue[1:varTilde$k])
         }
 
         if (j > 1) {
             varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
         }
 
-        varTilde$a[1]                   <- paramValues$minReadPos
-        varTilde$a[varTilde$k + 1]      <- paramValues$maxReadPos
 
         varTilde$dim[1]          <- length(paramValues$y[varTilde$a[1] <=
                                         paramValues$y & paramValues$y <
@@ -1085,7 +1083,7 @@ birthMove <- function(paramValues, kValue, muValue, sigmafValue, sigmarValue,
         } else if(j < varTilde$k){
             qalloc <- 1/(muValue[j] - muValue[j - 1])
         } else {
-            qalloc <- 1/(paramValues$maxReadPos - muValue[j - 1])
+            qalloc <- 1/(paramValues$maxReadPos - muValue[j])
         }
 
         rap.priormu   <- (priorMuDensity(varTilde$mu[1:varTilde$k],
