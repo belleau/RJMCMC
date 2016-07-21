@@ -1896,10 +1896,14 @@ deathMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
 
         Z                               <- aValue[1:(kValue + 1)]
 
-        if (j == kValue) {
+        if (j == kValue) { # remove last
             varTilde$a[1:(varTilde$k + 1)] <- Z[-j]
         } else {
             varTilde$a[1:(varTilde$k + 1)] <- Z[-(j + 1)]
+            if(j > 1)  # distribute the seq between muValue[j-1] and muValue[j+1]
+            {
+                varTilde$a[j] <- runif(1, varTilde$mu[j - 1], varTilde$mu[j])
+            }
         }
 
         varTilde$a[1]                <- paramValues$minReadPos
@@ -1920,20 +1924,51 @@ deathMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
         }
 
         Pr   <- min(varTilde$dim[1:varTilde$k])
+        ybar <- array(dim=2)
 
-        ybar <- mean(paramValues$y[varTilde$a[j] <= paramValues$y &
-                                        paramValues$y <= varTilde$a[j + 1]])
+        classesf <- array(dim=2)
+        classesr <- array(dim=2)
 
-        classesf <- paramValues$y[varTilde$a[j] <= paramValues$y &
-                                        paramValues$y <= ybar]
-        classesr <- paramValues$y[ybar <= paramValues$y &
-                                        paramValues$y <= varTilde$a[j + 1]]
+        Lf <- array(dim=2)
+        Lr <- array(dim=2)
 
-        Lf    <- length(classesf[!duplicated(classesf)])
-        Lr    <- length(classesr[!duplicated(classesr)])
+        if(j == 1){
+            ybar[2] <- mean(paramValues$y[varTilde$a[j] <= paramValues$y &
+                                              paramValues$y <= varTilde$a[j + 1]])
+            classesf[2] <- paramValues$y[varTilde$a[j] <= paramValues$y &
+                                          paramValues$y <= ybar]
+            classesr[2] <- paramValues$y[ybar <= paramValues$y &
+                                          paramValues$y <= varTilde$a[j + 1]]
+
+            Lf[2]    <- length(classesf[!duplicated(classesf[2])])
+            Lr[2]    <- length(classesr[!duplicated(classesr[2])])
+        } else if(j < kValue){
+            for(i in 1:2){
+                ybar[i] <- mean(paramValues$y[varTilde$a[j-2+i] <= paramValues$y &
+                                                  paramValues$y <= varTilde$a[j - 1 + i]])
+                classesf[i] <- paramValues$y[varTilde$a[j-2+i] <= paramValues$y &
+                                                 paramValues$y <= ybar]
+                classesr[i] <- paramValues$y[ybar <= paramValues$y &
+                                                 paramValues$y <= varTilde$a[j - 1 + i]]
+
+                Lf[1]    <- length(classesf[!duplicated(classesf[i])])
+                Lr[1]    <- length(classesr[!duplicated(classesr[i])])
+            }
+        } else {
+            ybar[1] <- mean(paramValues$y[varTilde$a[j-1] <= paramValues$y &
+                                              paramValues$y <= varTilde$a[j]])
+            classesf[1] <- paramValues$y[varTilde$a[j-1] <= paramValues$y &
+                                             paramValues$y <= ybar]
+            classesr[1] <- paramValues$y[ybar <= paramValues$y &
+                                             paramValues$y <= varTilde$a[j]]
+
+            Lf[1]    <- length(classesf[!duplicated(classesf[1])])
+            Lr[1]    <- length(classesr[!duplicated(classesr[1])])
+        }
 
 
-        if ((Pr > 1 & Lf > 1 & Lr > 1)) break()
+
+        if (length(Pr[Pr>1 & !is.na(Pr)]) == length(Pr) & length(Lf[Lf>1 & !is.na(Lf)]) == length(Lf) & length(Lr[Lr>1 & !is.na(Lr)]) == length(Lr) ) break()
 
         count <- count + 1L
 
@@ -1943,6 +1978,18 @@ deathMove <- function(paramValues , kValue, muValue, sigmafValue, sigmarValue,
     if (count == 1000L) {
         varTilde$rho <- 0
     } else {
+
+        # Compute sigma
+
+        for(i in 1:2){
+            if(!is.na(classesf[i])){
+                varTilde$sigmaf[j-2+i] <- var(classesf) *
+                    (varTilde$df[j-2+i]-2)/varTilde$df[j-2+i]
+                varTilde$sigmar[j-2+i] <- var(classesr) *
+                    (varTilde$df[j-2+i]-2)/varTilde$df[j-2+i]
+            }
+        }
+
         alpha          <- rep(1, kValue)
         alphatilde     <- rep(1, varTilde$k)
         alphaproptilde <- rep(1, varTilde$k)
